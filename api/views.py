@@ -4,6 +4,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import os
+from .yolov5 import detect
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Analyze(View):
@@ -11,6 +12,7 @@ class Analyze(View):
         timestamp = int(timezone.now().timestamp())
         inputfilename = f'./sources/{timestamp}.jpg'
         os.makedirs(os.path.dirname(inputfilename), exist_ok=True)
-        file = open(inputfilename, 'wb')
-        file.write(request.FILES['pic'].file.read())
-        return JsonResponse({'foo':'bar'})
+        with open(inputfilename, 'wb') as f:
+            f.write(request.FILES['pic'].file.read())
+        result = detect.run(data="api\yolov5\data\platebowl.yaml", weights="api\yolov5\last.pt",source=inputfilename,save_crop=True,project="sources",name="yoloD")
+        return JsonResponse({'foo':str(result)})
