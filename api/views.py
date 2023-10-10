@@ -20,4 +20,4 @@ class Analyze(View):
             category = resnet50_infer.run(weights="api\\resnet50\\resnet50model.pth",classes="api\\resnet50\\classes.txt",file=inputfilename)
         else:
             category = resnet50_infer.run(weights="api\\resnet50\\resnet50model.pth",classes="api\\resnet50\\classes.txt",file=str(cropped_bowl_dir))
-        return JsonResponse({'detected_category':category})
+        return JsonResponse({'detected_category':category,"carb":"600 g","prot":"500 g","fat":"200 g","cal":"200 KC", "mass":request.POST['mass']})
