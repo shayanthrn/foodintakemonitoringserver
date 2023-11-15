@@ -31,4 +31,4 @@ class Analyze(View):
             response = requests.get(api_endpoint,
                             params={'api_key':api_key,'query':category,"pageSize":"5"})
             response_json=json.loads(response.text)
-        return JsonResponse({'detected_category':category,'response':response_json, "mass":request.POST['mass']})
+        return JsonResponse({'detected_category':category,'response':response_json})
