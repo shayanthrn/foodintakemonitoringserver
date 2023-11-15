@@ -5,7 +5,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import os
 from .yolov5 import detect
+import requests
 from .resnet50 import resnet50_infer
+import json
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Analyze(View):
@@ -20,4 +22,13 @@ class Analyze(View):
             category = resnet50_infer.run(weights="api\\resnet50\\resnet50model.pth",classes="api\\resnet50\\classes.txt",file=inputfilename)
         else:
             category = resnet50_infer.run(weights="api\\resnet50\\resnet50model.pth",classes="api\\resnet50\\classes.txt",file=str(cropped_bowl_dir))
-        return JsonResponse({'detected_category':category,"carb":"600 g","prot":"500 g","fat":"200 g","cal":"200 KC", "mass":request.POST['mass']})
+        api_endpoint = 'https://api.nal.usda.gov/fdc/v1/foods/search'
+        api_key = 'UpiCIow4X9djmkhaFquVi3C60KDysvaLrwfYse5D'
+        response = requests.get(api_endpoint,
+                            params={'api_key':api_key,'query':category,"dataType":"Survey (FNDDS)","pageSize":"5"})
+        response_json=json.loads(response.text)
+        if(response_json['totalHits']==0):
+            response = requests.get(api_endpoint,
+                            params={'api_key':api_key,'query':category,"pageSize":"5"})
+            response_json=json.loads(response.text)
+        return JsonResponse({'detected_category':category,'response':response_json, "mass":request.POST['mass']})
