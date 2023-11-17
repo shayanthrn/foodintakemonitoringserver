@@ -183,16 +183,30 @@ class Scales(HX711):
 
 
 import network
+import socket
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 accesspoints = wlan.scan()
-wlan.connect("FoxFox","Oveysemadarkharab@")
+wlan.connect("4990app25","45120-32589")
 print(wlan.isconnected())
 scales = Scales(d_out=15, pd_sck=14)
 scales.tare()
+ip_address = wlan.ifconfig()[0]
+print("Microcontroller IP address:", ip_address)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind(('', 5432))  # Bind to all interfaces on port 80
+s.listen(5)       # Listen for incoming connections
+scale = 0.002614551607445
 while True:
-    val = scales.raw_value()
-    scale = 0.002614551607445
-    print(val*scale)
+    conn, addr = s.accept()
+    print('Got a connection from %s' % str(addr))
+    try:
+        val = scales.raw_value()
+        weight = val * scale
+        print(f'this is the weight I sent:{weight}')
+        conn.send(str(weight))  # Send the weight value
+    except Exception as e:
+        print("Error:", e)
+    conn.close()  # Close the connection
 scales.power_off()
 
